@@ -35,6 +35,10 @@ Instructions:
 
     Your code goes here!
      */
+    return fetch(url, {
+      method: 'get'
+    });
+    
   }
 
   /**
@@ -48,16 +52,21 @@ Instructions:
 
     Your code goes here!
      */
+    return get(url).then(function (response) {
+      return response.json();
+    });
   }
 
   window.addEventListener('WebComponentsReady', function() {
     home = document.querySelector('section[data-route="home"]');
-    /*
-    Uncomment the next line when you're ready to test!
-    Don't forget to chain with a .then and a .catch!
-
-    Your code goes here too!
-     */
-    // getJSON('../data/earth-like-results.json')
+    getJSON('./data/earth-like-results.json')
+    .then(function (response) {
+      addSearchHeader(response);
+      console.log(response);
+    })
+    .catch(function (error) {
+      addSearchHeader(error);
+      console.log(error);
+    });
   });
 })(document);
