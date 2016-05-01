@@ -31,6 +31,7 @@ proper order even if all the requests haven't finished.
       pT[d] = data[d];
     }
     home.appendChild(pT);
+    console.log('rendered: ' + data.pl_name);
   }
 
   /**
@@ -48,16 +49,42 @@ proper order even if all the requests haven't finished.
    * @return {Promise}    - A promise that passes the parsed JSON response.
    */
   function getJSON(url) {
+    console.log('sent: ' + url);
     return get(url).then(function(response) {
-      return response.json();
+      // For testing purposes, I'm making sure that the urls don't return in order
+      if (url === 'data/planets/Kepler-62f.json') {
+        return new Promise(function(resolve) {
+          setTimeout(function() {
+            console.log('received: ' + url);
+            resolve(response.json());
+          }, 5000);
+        });
+      } else {
+        console.log('received: ' + url);
+        return response.json();
+      }
     });
   }
 
   window.addEventListener('WebComponentsReady', function() {
     home = document.querySelector('section[data-route="home"]');
-    /*
-    Your code goes here!
-     */
-    // getJSON('../data/earth-like-results.json')
+    getJSON('data/earth-like-results.json')
+    .then(function (response) {
+      var requests = response.results.map(function (result) {
+        return getJSON(result);
+      });
+      
+      var promise = Promise.resolve();
+      requests.forEach(function (request) {
+        promise = promise.then(function () {
+          return request.then(function (response) {
+            return new Promise(function (resolve) {
+              createPlanetThumb(response);
+              resolve();
+            });
+          });
+        });
+      });
+    });
   });
 })(document);
